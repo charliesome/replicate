@@ -357,20 +357,22 @@ module Replicate
       end
     end
 
-    # Backport connection.enable_query_cache! for Rails 2.x
-    require 'active_record/connection_adapters/abstract/query_cache'
-    query_cache = ::ActiveRecord::ConnectionAdapters::QueryCache
-    if !query_cache.methods.any? { |m| m.to_sym == :enable_query_cache! }
-      query_cache.module_eval do
-        attr_writer :query_cache, :query_cache_enabled
+    if ::ActiveRecord::VERSION::MAJOR < 3
+      # Backport connection.enable_query_cache! for Rails 2.x
+      require 'active_record/connection_adapters/abstract/query_cache'
+      query_cache = ::ActiveRecord::ConnectionAdapters::QueryCache
+      if !query_cache.methods.any? { |m| m.to_sym == :enable_query_cache! }
+        query_cache.module_eval do
+          attr_writer :query_cache, :query_cache_enabled
 
-        def enable_query_cache!
-          @query_cache ||= {}
-          @query_cache_enabled = true
-        end
+          def enable_query_cache!
+            @query_cache ||= {}
+            @query_cache_enabled = true
+          end
 
-        def disable_query_cache!
-          @query_cache_enabled = false
+          def disable_query_cache!
+            @query_cache_enabled = false
+          end
         end
       end
     end
